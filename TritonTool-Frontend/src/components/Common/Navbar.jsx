@@ -8,9 +8,8 @@ export default function Navbar({authenticated, setAuthenticated, BACKEND_URL, to
 
     async function handleLogout() {
         try {
-            await axios.post(`${BACKEND_URL}/api/logout`);
+            await axios.post(`${BACKEND_URL}/api/logout`, {}, { withCredentials: true });
             setAuthenticated(false);
-            sessionStorage.clear();
             navigate('/login');
         } catch (error) {
             console.error('Logout error:', error);

@@ -50,6 +50,7 @@ const authenticateToken = (req, res, next) => {
     }
     jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
         if (err) {
+            res.clearCookie('token'); // Clear the invalid token
             return res.status(401).json({error: err.name === 'TokenExpiredError' ? 'Unauthorized: Token expired' : 'Unauthorized: Invalid token' });
         }
         req.userID = decoded.userID;
@@ -62,6 +63,14 @@ app.get('/api/verifytoken', authenticateToken, (req, res) => {
     res.status(200).json({ message: 'Token is valid', userID: req.userID });
 });
 
+//================================================================================
+//===================================[LOGGING OUT]================================
+//================================================================================
+
+app.post('/api/logout', (req, res) => {
+    res.clearCookie('token');
+    res.status(200).json({ message: 'Logged out successfully' });
+});
 
 //============================================================================================================================
 //===================================[LOGGING IN, REGISTERING, AND DEFAULT INITIALIZATIONS]===================================
@@ -170,15 +179,6 @@ async function getDefaultLabels() {
     const results = await client.query('SELECT DISTINCT label_name FROM default_resources');
     return results.rows;
 }
-
-//================================================================================
-//===================================[LOGGING OUT]================================
-//================================================================================
-
-app.post('/api/logout', (req, res) => {
-    res.clearCookie('token');
-    res.status(200).json({ message: 'Logged out successfully' });
-});
 
 //==============================================================================================
 //===================================[RETRIEVING COURSE INFO]===================================

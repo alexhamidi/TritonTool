@@ -38,21 +38,21 @@ function AppContent() {
 
     useEffect(() => {
         const checkAuth = async () => {
-            try {
-                await axios.get(`${BACKEND_URL}/api/verifytoken`, { withCredentials: true });
-                setAuthenticated(true);
-            } catch (error) {
-                sessionStorage.clear();
-                setAuthenticated(false);
-            } finally {
-                setLoading(false);
-            }
+        try {
+            const response = await axios.get(`${BACKEND_URL}/api/verifytoken`, { withCredentials: true });
+            setAuthenticated(response.data.message === 'Token is valid');
+        } catch (error) {
+            setAuthenticated(false);
+        } finally {
+            setLoading(false);
+        }
         };
+    
         checkAuth();
-    }, []);
+    }, [BACKEND_URL]);
 
     const shouldShowNavbar = !hideNavbarPaths.includes(location.pathname);
-
+    
     if (loading) {
         return <div>Loading...</div>;
     }

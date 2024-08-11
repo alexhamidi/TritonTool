@@ -42,6 +42,7 @@ export default function Resources({authenticated, setAuthenticated, BACKEND_URL}
         try {
             const response = await axios.get(`${BACKEND_URL}/api/${authenticated ? '' : 'default'}labels`, { withCredentials: true });
             setLabels(response.data);  
+            console.log(response.data)
         } catch (error) {
             console.error('Error fetching labels:', error);
         }
@@ -50,7 +51,6 @@ export default function Resources({authenticated, setAuthenticated, BACKEND_URL}
     async function fetchResources() {
         try {
             const response = await axios.get(`${BACKEND_URL}/api/${authenticated ? '' : 'default'}resources`, { withCredentials: true });
-            console.log(response.data)
             setResources(response.data);  
         } catch (error) {
             console.error('Error fetching resources:', error);

@@ -11,10 +11,6 @@ export default function Login({BACKEND_URL, authenticated, setAuthenticated}) {
     const navigate = useNavigate();
 
     useEffect(() => {
-        axios.defaults.withCredentials = true;
-    }, []);
-
-    useEffect(() => {
         if (authenticated) {
             navigate('/');
         }
@@ -28,7 +24,7 @@ export default function Login({BACKEND_URL, authenticated, setAuthenticated}) {
             return;
         }
         try {
-            const response = await axios.post(`${BACKEND_URL}/api/login`, user);    
+            const response = await axios.post(`${BACKEND_URL}/api/login`, user, { withCredentials: true });    
             if (response.data.message === 'Login successful') {
                 setAuthenticated(true);
                 navigate('/'); 
@@ -41,10 +37,7 @@ export default function Login({BACKEND_URL, authenticated, setAuthenticated}) {
                 error.response?.status === 401 ? 'Incorrect Password' :
                 'Error occurred');
         }
-        setUser({
-            email:'',
-            password:''
-        });
+        setUser({ email: '', password: '' });
     };
 
 
