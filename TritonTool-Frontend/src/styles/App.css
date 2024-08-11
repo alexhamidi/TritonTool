@@ -13,6 +13,7 @@
     --calendar-head-background-color:#6b8292;
     --border-calendar: 1px solid #e0e0e0;
     --selected-color: #cbe9ff;
+    --calendar-x-color: #333;
 
     --border-checkbox: 2px solid #555;
     --checkbox-checked: #4CAF50;
@@ -42,6 +43,7 @@
     --calendar-head-background-color: #4a5a66;
     --border-calendar: 1px solid #444;
     --selected-color: #3a6d8c;
+    --calendar-x-color: #333;
 
     --border-checkbox: 2px solid #888;
     --checkbox-checked: #A4DFAF;
@@ -193,6 +195,10 @@ nav > * {
 
 #addCalendarForm input,#cancelCalendarAdd  {
     border: var(--border)
+}
+
+#cancelCalendarAdd i {
+    color: var(--calendar-x-color)
 }
 
 #addCalendarForm input {
