@@ -39,7 +39,7 @@ export default function Calendar({
         return (
             <div
                 ref={setNodeRef}
-                className={`tableCell ${isSelected ? 'tcSelected' : ''}`}
+                className={`tableCell ${isSelected ? 'selection' : ''}`}
                 onClick={onClick}
             >
                 {course.course_name}

@@ -165,8 +165,8 @@ export default function Resources({authenticated, setAuthenticated, BACKEND_URL}
                     <button onClick={() => setAddResource(true)} className='input'>Add New Resource</button>
                 ) : (
                     <>
-                        <button className='input' onClick={() => navigate('/login')}>login</button>
-                        <p className='loginto'><strong>to add new courses.</strong></p>
+                        <button className='input' onClick={() => navigate('/login')}>log in</button>
+                        <p className='loginto'><strong>to add new resources.</strong></p>
                     </>
                 )}
                 <select value={currentLabel} className='input' onChange={(e) => handleLabelChange(e.target.value)}>

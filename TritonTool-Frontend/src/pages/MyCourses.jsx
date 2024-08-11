@@ -76,31 +76,6 @@ export default function MyCourses({authenticated, setAuthenticated, BACKEND_URL}
         return courses.find(course => course.course_id === course_id);
     }
 
-    async function handlePrerequisiteCheck() {
-        const takenCourses = getCoursesByQuarterAndCalendar('fulfilled', 'fulfilled').map(course => course.course_code);
-        const results = quarters.slice(1).flatMap(quarter => 
-            getCoursesByQuarterAndCalendar(quarter, currentCalendar)
-                .filter(course => !course.takeable)
-                .map(course => {
-                    const newlyTakeable = course.prerequisite_segments.some(segment => {
-                        if (segment.checked) return false;
-                        const isFulfilledNow = segment.segment_name.split(' and ').every(c => takenCourses.includes(c.trim()));
-                        if (isFulfilledNow) handlePrerequisiteChange(course.course_id, segment.segment_id);
-                        return isFulfilledNow;
-                    });
-                    if (newlyTakeable) handleTakeableChange(course.course_id)
-                    return { course, newlyTakeable };
-                })
-        );
-        const newlyFulfilled = results.filter(r => r.newlyTakeable).map(r => `${r.course.course_code} (${r.course.quarter})`);
-        const stillUnfulfilled = results.filter(r => !r.newlyTakeable).map(r => `${r.course.course_code} (${r.course.quarter})`);
-    
-        let message = 'Check successful.';
-        if (newlyFulfilled.length > 0) message += `\nCredit granted for:\n${newlyFulfilled.join('\n')}\n`;
-        if (stillUnfulfilled.length > 0) message += `\nInsufficient credits for:\n${stillUnfulfilled.join('\n')}\n`;
-        alert(message);
-    }
-
     async function handleTakeableChange(course_id) {
         try {
             await axios.post(`${BACKEND_URL}/api/updatetakeable`, { course_id }, { withCredentials: true });
@@ -214,9 +189,6 @@ export default function MyCourses({authenticated, setAuthenticated, BACKEND_URL}
                     handleDeleteCourse={handleDeleteCourse}
                 />
             </section>
-            <button className="card" id="creditCheck" onClick={handlePrerequisiteCheck}>
-                Check which currently fulfilled courses fulfill prerequisites
-            </button>
             <section className="bottom">
                 {quarters.slice(1, 5).map((season) => (
                     <PrerequisiteQuarterRow

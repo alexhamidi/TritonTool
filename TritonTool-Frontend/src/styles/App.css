@@ -153,6 +153,12 @@ nav > * {
     top: .7rem;
 }
 
+@media (max-width: 650px) {
+    .modeToggle {
+        top: 3rem;
+    }
+}
+
 /* Calendar */
 
 #calendar, #selectedArea {
@@ -257,7 +263,7 @@ nav > * {
     background-color:  var(--card-background-color);
 }
 
-.tableCell.tcSelected, .tableCell:hover {
+.tableCell:hover {
     background-color: var(--selected-color);
     cursor: pointer;
 }
@@ -290,17 +296,7 @@ nav > * {
     opacity: 70%;  
     cursor: grab;
 }
-
-
-/* Creditcheck */
-
-#creditCheck {
-    font-size: 1em;
-    border: var(--border);
-    margin-top: 1rem;
-    width:20rem;
-}
-
+    
 /* Prerequisites */
 
 .seasonDiv {
@@ -402,7 +398,7 @@ nav > * {
     overflow-x: scroll;
 }
 
-.courseBottom .selection {
+.selection {
     background-color: var(--selected-color);
 }
 

@@ -1,17 +1,17 @@
-//625
 //=========================================================================================
 //===================================[IMPORTS AND SETUP]===================================
 //=========================================================================================
 
 const express = require('express');
-const cheerio = require('cheerio');
-const axios = require('axios')
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const { Client } = require('pg');
 const { handleGenericServerError } = require('./utils/handleGenericServerError');
+const { getAllCourses, getOneCourse } = require('./utils/courseUtils');
+const { getDefaultCalendar, getDefaultLabels, getDefaultResources } = require('./utils/defaultItems');
+const { addDefaultCalendar, addDefaultLabels, addDefaultResources } = require('./utils/defaultInits');
 const app = express();
 require('dotenv').config();
 
@@ -25,13 +25,21 @@ app.use(cors({
 
 const PORT = process.env.PORT;
 
-const client = new Client({
-    user: process.env.USER,
-    host: 'localhost',
-    database: process.env.DATABASE,
-    password: process.env.PASSWORD,
-    port: process.env.DB_PORT,
-});
+let client;
+
+if (process.env.NODE_ENV === 'development') {
+    client = new Client({
+        user: process.env.USER,
+        host: 'localhost',
+        database: process.env.DATABASE,
+        password: process.env.PASSWORD,
+        port: process.env.DB_PORT,
+    })
+} else if (process.env.NODE_ENV === 'production') {
+    client = new Client({
+        connectionString: process.env.DATABASE_URL,
+    })
+}
 
 client.connect()
     .then(() => console.log('Connected to PostgreSQL database'))
@@ -121,30 +129,14 @@ app.post('/api/register', async (req, res) => {
     
         const userID = newUser.rows[0].user_id;       
 
-        //Add the default calendar
-        const defaultCalendar = getDefaultCalendar();
-        await client.query(
-            'INSERT INTO calendars (user_id, calendar_name) VALUES ($1, $2)',
-            [userID, defaultCalendar]
-        );
+        const defaultCalendar = getDefaultCalendar(client);
+        await addDefaultCalendar(defaultCalendar, userID, client);
 
-        //Add the default resources
-        const defaultResources = await getDefaultResources();
-        for (const resource of defaultResources) {
-            await client.query(
-                'INSERT INTO resources (user_id, resource_name, description, label_name, link) VALUES ($1, $2, $3, $4, $5)',
-                [userID, resource.resource_name, resource.description, resource.label_name, resource.link]
-            );
-        }
+        const defaultResources = await getDefaultResources(client);
+        await addDefaultResources(defaultResources, userID, client);
 
-        //add the default labels
-        const defaultLabels = await getDefaultLabels()
-        for (const label of defaultLabels) {
-            await client.query(
-                'INSERT INTO labels (user_id, label_name) VALUES ($1, $2)',
-                [userID, label.label_name]
-            );
-        }
+        const defaultLabels = await getDefaultLabels(client)
+        await addDefaultLabels(defaultLabels, userID, client);
 
         const token = jwt.sign(
             { userID: userID, random: Math.random().toString(36).substring(7) },
@@ -164,21 +156,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-//adds the default calendar (2024-2025) to the initialized user's database
-function getDefaultCalendar() {
-    return '2024-2025'
-}
 
-//adds the default resources (from data/defaultResources.js) to the initialized user's database
-async function getDefaultResources() {
-    const results = await client.query('SELECT * FROM default_resources');
-    return results.rows;
-}
-
-async function getDefaultLabels() {
-    const results = await client.query('SELECT DISTINCT label_name FROM default_resources');
-    return results.rows;
-}
 
 //==============================================================================================
 //===================================[RETRIEVING COURSE INFO]===================================
@@ -190,7 +168,9 @@ app.post('/api/searchcourse', async (req, res) => {
         const courseCode = req.body.course_code.trim().toUpperCase();
         if (!courseCode) return res.status(400).json({ error: 'Course code is required' });
         const parts = courseCode.trim().split(' ');
-        const course_info = (parts.length === 1 ? await getAllCourses(courseCode) : await getOneCourse(courseCode));
+        const course_info = (parts.length === 1 ? 
+            await getAllCourses(courseCode, client) : 
+            await getOneCourse(courseCode, client));
         res.status(200).json({ course_info });
     } catch (error) {
         console.error(error);
@@ -204,141 +184,6 @@ app.post('/api/searchcourse', async (req, res) => {
     }
 });
 
-//Return info for a single course given a course code. Sanitizes inputs and provides flexible searching. 
-async function getOneCourse(courseCode) {
-    const parts = courseCode.split(' ');
-    const subject_code = parts[0];
-    const secondPart = parts.slice(1).join(' ');
-    const courses_info = await getAllCourses(subject_code);
-    const course_info = courses_info.filter(course => course.course_name.toLowerCase().includes(secondPart.toLowerCase()));
-    if (course_info.length === 0)  throw new Error('Course Not Found')
-    return course_info;
-}
-
-//Return info for all courses given a dpt code
-async function getAllCourses(subject_code) {
-    const subjectMap = {
-        'LIGN': 'LING', 'BILD': 'BIOL', 'BICD': 'BIOL', 'AAS': 'AASM', 'AUD': 'AUDL',
-        'BNFO': 'BIOI', 'CLX': 'CLS', 'FILM': 'CIN', 'CLASSIC': 'CLAS', 'SIOC': 'CSP',
-        'AESE': 'MAS', 'WES': 'MAS', 'DSE': 'MAS', 'GPCO': 'GPS', 'HILD': 'HIS',
-        'MGTA': 'MGT', 'MGTP': 'MGT', 'MUIR': 'MCWP', 'NEUG': 'NEU', 'FPM': 'FMPH',
-        'SIOG': 'SIO', 'SIOB': 'SIO', 'SOCI': 'SOC ', 'SOCG': 'SOC ',
-        'TDAC': 'THEA', 'TDDE': 'THEA', 'TDDM': 'THEA', 'TDDR': 'THEA',
-        'TDGE': 'THEA', 'TDGR': 'THEA', 'TDHD': 'THEA', 'TDHT': 'THEA',
-        'TDMV': 'THEA', 'TDPF': 'THEA', 'TDPR': 'THEA', 'TDTR': 'THEA',
-        'WCWP': 'WARR'
-    };
-    subject_code = (subjectMap[subject_code] || subject_code);
-    subject_code = subject_code.startsWith('LT') ? 'LIT' : subject_code;
-    subject_code = subject_code.startsWith('HI') ? 'HIST' : subject_code;
-
-    const coursesFromDB = await client.query('SELECT * FROM courses_catalog WHERE subject_code = $1',[subject_code])
-    if (coursesFromDB.rows.length > 0)  return coursesFromDB.rows;
-
-    console.log(`Fetching courses for ${subject_code} from website...`);
-    const url = `https://catalog.ucsd.edu/courses/${subject_code}.html`;
-    
-    try {
-        const { data } = await axios.get(url);
-        const $ = cheerio.load(data);
-        let courses_info = [];
-
-        const anchors = $('.anchor-parent');
-        for (let i = 0; i < anchors.length; i++) {
-            const anchor = $(anchors[i]).find('a');
-            const name = anchor.attr('id');
-            const course_info = await getCourseInfo($, name);
-            if (course_info.course_name) {
-                courses_info.push(course_info);
-                const insertedCourse = await client.query(
-                    'INSERT INTO courses_catalog (subject_code, course_code, course_name, credits, description, prerequisites, notes) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING course_id',
-                    [subject_code, course_info.course_code, course_info.course_name, course_info.credits, course_info.description, course_info.prerequisites, course_info.notes]
-                );
-                for (let segment_name of course_info.prerequisite_segments) {
-                    await client.query(
-                        'INSERT INTO prerequisite_segments_catalog (course_id, segment_name) VALUES ($1, $2)',
-                        [insertedCourse.rows[0].course_id, segment_name]
-                    );
-                }
-            }
-        }
-        return courses_info;
-    } catch (error) {
-        console.error(error);
-        if (error.response?.status === 404) throw new Error(`URL not found: ${url}`);
-        throw error;
-    }
-}
-
-//Get info for a single course given a properly formatted code. Used in getAllCourses
-async function getCourseInfo($, modCourseCode) {//update this 
-    let course_info = {}
-    let upperCaseCode = modCourseCode.toUpperCase();
-    course_info['course_code'] = upperCaseCode.slice(0, upperCaseCode.search(/\d/)) + ' ' + upperCaseCode.slice(upperCaseCode.search(/\d/));
-    try {
-        const anchorParent = $(`#${modCourseCode}`).closest('.anchor-parent');
-        if (!anchorParent.length) throw new Error(`Course ${modCourseCode} not found`);
-
-        const fullCourseName = anchorParent.next('.course-name').text().trim();
-        const [, credits = 'N/A', textAfterCredits = ''] = fullCourseName.match(/\((.*?)\)(.*?)$/) || [];
-        course_info.credits = credits.trim();
-        course_info.course_name = fullCourseName.replace(/\(.*?\).*$/, '').trim();
-
-        const fullDescription = anchorParent.nextAll('.course-descriptions').first().text().trim();
-        course_info.description = fullDescription.replace(/(Prerequisites|Note):\s*(.*?)\..*$/i, '').trim();
-
-        const prerequisitesMatch = fullDescription.match(/Prerequisites:\s*(.*?)[.;]/);
-        const noteMatch = fullDescription.match(/Note:\s*(.*?)(?=(?:$))/i);
-
-        course_info.prerequisite_segments = [];
-        course_info.prerequisites = 'none';
-        course_info.notes = noteMatch ? noteMatch[1] : 'none';
-
-        if (prerequisitesMatch) {
-            course_info.prerequisites = prerequisitesMatch[1].trim();
-            course_info.prerequisite_segments = course_info.prerequisites === 'none' ? [] : parsePrerequisites(course_info.prerequisites);
-            course_info.notes = fullDescription.slice(prerequisitesMatch.index + prerequisitesMatch[0].length).trim() || 'none';
-        }
-
-        course_info.notes = textAfterCredits ? (course_info.notes === 'none' ? textAfterCredits : `${textAfterCredits}. ${course_info.notes}`) : course_info.notes;
-                
-        return course_info;
-    } catch (error) {
-        if (error.response?.status === 404) {
-            throw new Error(`URL not found: ${url}`);
-        }
-        throw error; 
-    }
-}
-
-//Parse Prerequisites into segments. Used in getCourseInfo
-function parsePrerequisites(prerequisites) {
-    const parts = prerequisites.split(/,\s*or\s+|\s+or\s+/);
-    const segments = [];
-    for (let i = 0; i < parts.length; i++) {
-        let part = parts[i].trim();
-        const nextPart = parts[i + 1]?.trim();
-        if (part.startsWith('AP') && /^\d+$/.test(nextPart)) {
-            segments.push(`${part} or ${nextPart}`);
-            i++;
-        } else if (/[A-Z]{2,4}\s+\d+[A-Z]?/.test(part) && part.includes('grade of')) {
-            segments.push([part + (nextPart === 'better' ? ' or better' : ''), '0']);
-            if (nextPart === 'better') i++;
-        } else if (/\b(SAT|ACT|SAT II)\b/.test(part)) {
-            let scoreRequirement = `${part} ${nextPart}`;
-            if (['higher', 'better'].includes(parts[i + 2]?.trim())) {
-                scoreRequirement += ` or ${parts[i + 2]}`;
-                i += 2;
-            } else {
-                i++;
-            }
-            segments.push(scoreRequirement);
-        } else {
-            segments.push(part);
-        }
-    }
-    return segments;
-}
 
 //=========================================================================================================
 //===================================[CALENDAR INFO AND FUNCTIONALITIES]===================================
@@ -406,18 +251,6 @@ app.delete('/api/deletecalendar/:calendar_name', authenticateToken, async(req, r
     }
 });
 
-//===============================================================================================
-//===================================[FACULTY FUNCTIONALITIES]===================================
-//===============================================================================================
-
-//Load local faculty file
-app.get('/api/faculty', async (req, res) => {
-    try {
-        res.status(200).json({ faculty });
-    } catch (error) {
-        handleGenericServerError(error, res)
-    }
-});
 
 
 //====================================================================================================
@@ -584,7 +417,7 @@ app.get('/api/resources', authenticateToken, async(req, res) => {
 //load default resources (if the user is logged in as a guest)
 app.get('/api/defaultresources', async(req, res) => {
     try {
-        const defaultResources = await getDefaultResources()
+        const defaultResources = await getDefaultResources(client)
         res.json(defaultResources);
     } catch (error) {
         handleGenericServerError(error, res)
@@ -606,7 +439,7 @@ app.get('/api/labels', authenticateToken, async(req, res) => {
 
 app.get('/api/defaultlabels', async(req, res) => {
     try {
-        const defaultLabels = await getDefaultLabels();
+        const defaultLabels = await getDefaultLabels(client);
         res.json(defaultLabels);
     } catch (error) {
         handleGenericServerError(error, res)
