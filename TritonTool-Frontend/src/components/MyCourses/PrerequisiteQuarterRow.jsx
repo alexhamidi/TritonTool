@@ -8,7 +8,7 @@ export default function PrerequisiteQuarterRow({getCoursesByQuarterAndCalendar, 
             <h2>Required for {season} courses:</h2>
             {quarterCourses.length > 0 ? (
                 <div className="seasonRow">
-                    {quarterCourses.map((course) => (
+                    {quarterCourses.sort((a, b) => a.course_name.localeCompare(b.course_name)).map((course) => (
                         <div className={`coursePrereq card ${course.takeable ? 'takeable' : 'notTakeable'}`} key={course.course_id}>
                         <h3>{course.course_name}</h3>
                             <div className='coursePrereqCourses'> 
