@@ -24,8 +24,8 @@ export default function Navbar({authenticated, setAuthenticated, BACKEND_URL, to
             <NavLink to="/resources">Resources</NavLink>
             <label id = 'modeToggle'>
                 {darkMode ? 
-                    <i class="fa-regular fa-sun"/> : 
-                    <i class="fa-solid fa-moon"/>}
+                    <i className="fa-regular fa-sun"/> : 
+                    <i className="fa-solid fa-moon"/>}
                 <input 
                     type="checkbox" 
                     checked={darkMode} 

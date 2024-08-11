@@ -60,7 +60,7 @@
     --delete-and-error-color: #ff6b6b;
 }
 
-input, a, body .card, tr, #pagination, #selectedArea, nav, .tableCell, nav *{
+input, a, body .card, tr, #pagination, #selectedArea, nav, .tableCell, nav *, button {
     transition: all .15s ease;
 
 }

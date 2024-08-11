@@ -42,6 +42,7 @@ function AppContent() {
                 await axios.get(`${BACKEND_URL}/api/verifytoken`, { withCredentials: true });
                 setAuthenticated(true);
             } catch (error) {
+                sessionStorage.clear();
                 setAuthenticated(false);
             } finally {
                 setLoading(false);

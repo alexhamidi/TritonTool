@@ -18,9 +18,10 @@ export default function ResourceList({getResourcesByLabel, currentLabel, authent
         {getResourcesByLabel(currentLabel).length > 0 ? (
             getResourcesByLabel(currentLabel)
             .sort((a, b) => {
-                const lengthDiff = (b.description?.length || 0) - (a.description?.length || 0);
+                const aDesc = a.description || '';
+                const bDesc = b.description || '';
+                const lengthDiff = bDesc.length - aDesc.length;
                 if (lengthDiff !== 0) return lengthDiff;
-                return a.resource_name.localeCompare(b.resource_name);
             })
             .map((resource, index) => (
                 <div className="resource card borderedCard" key={index}>

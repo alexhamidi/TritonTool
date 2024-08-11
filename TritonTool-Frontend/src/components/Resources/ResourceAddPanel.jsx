@@ -15,7 +15,7 @@ return (
                 name={field}
                 value={newResource[field]}
                 onChange={(e) => setNewResource(prev => ({ ...prev, [field]: e.target.value }))}
-                placeholder={field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')}
+                placeholder={field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ') + (field === 'description' ? ' (optional)' : '')}
             />
         ))}
         <div className='labelSelectArea'>

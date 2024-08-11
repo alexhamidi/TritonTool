@@ -93,13 +93,13 @@ export default function Resources({authenticated, setAuthenticated, BACKEND_URL}
 
     async function handleNewLabelSubmit() {
         try {
-            await axios.post(`${BACKEND_URL}/api/addresource`, 
+            await axios.post(`${BACKEND_URL}/api/addlabel`, 
                 {label_name: newLabelValue},
                 { withCredentials: true });
             if (editing) await handleDeleteResource(editingID);
             fetchResources();
-            resetAddResourceForm();
-            setNewResource(prev => ({ ...prev, label: newLabelValue }));
+            fetchLabels()
+            setNewResource(prev => ({ ...prev, label_name: newLabelValue }));
             setNewLabelSelected(false);
             setNewLabelValue('');
         } catch (error) {
@@ -140,6 +140,7 @@ export default function Resources({authenticated, setAuthenticated, BACKEND_URL}
         setCurrentLabel('');
         try {
             await axios.delete(`${BACKEND_URL}/api/deletelabel/${encodeURIComponent(label)}`, { withCredentials: true });
+            if (sessionStorage.getItem("currentLabel") === label) sessionStorage.setItem("currentLabel", '')
             fetchResources();
             fetchLabels();
         } catch (error) {
