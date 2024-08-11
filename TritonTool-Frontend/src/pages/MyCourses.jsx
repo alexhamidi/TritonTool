@@ -9,7 +9,7 @@ import { useAuthErrorHandler } from '../utils/useAuthErrorHandler';
 export default function MyCourses({authenticated, setAuthenticated, BACKEND_URL}) {
     const [courses, setCourses] = useState([]);
     const [calendars, setCalendars] = useState([]);
-    const [currentCalendar, setCurrentCalendar] = useState('');
+    const [currentCalendar, setCurrentCalendar] = useState(sessionStorage.getItem("currentCalendar") || "");
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [addCalendar, setAddCalendar] = useState(false);
     const [newCalendar, setNewCalendar] = useState('');
@@ -62,11 +62,6 @@ export default function MyCourses({authenticated, setAuthenticated, BACKEND_URL}
         }
         checkTakeable();
     }, [courses]);
-
-    useEffect(() => {
-        const storedCalendar = sessionStorage.getItem("currentCalendar") || "";
-        setCurrentCalendar(storedCalendar);
-    }, []); // Empty dependency array, runs only once on component mount
 
     function handleCalendarChange(calendar) {
         sessionStorage.setItem("currentCalendar", calendar);
@@ -174,6 +169,7 @@ export default function MyCourses({authenticated, setAuthenticated, BACKEND_URL}
     async function moveCourse(courseId, newQuarter) {
         try {
             const course = getCourseById(courseId);
+            if (newQuarter == course.quarter) return 
             const updatedCourse = { 
                 ...course,  
                 quarter: newQuarter,
@@ -181,7 +177,6 @@ export default function MyCourses({authenticated, setAuthenticated, BACKEND_URL}
                                course.calendar_name === 'fulfilled' ? currentCalendar : 
                                course.calendar_name
             };
-            if (newQuarter == course.quarter) return 
             await axios.post(`${BACKEND_URL}/api/addcourse`, updatedCourse, { withCredentials: true });
             await handleDeleteCourse(courseId);
             fetchCourses();
