@@ -15,8 +15,7 @@ export default function CourseItem({item, authenticated, handleAddCourse, calend
             <div className='courseBottom'>
                 {['fulfilled', 'summer',  'fall', 'winter', 'spring'].map(quarter => (
                     <button 
-                        style = {{backgroundColor: ((courseInfo[index]?.quarter === quarter) ? '#cbe9ff' : '') }}
-                        className='input' 
+                        className={`input ${courseInfo[index]?.quarter === quarter ? 'selection' : ''}`}
                         key={quarter} 
                         onClick={() => setCourseInfo(prevState => {
                             if (prevState[index]?.quarter === quarter) {

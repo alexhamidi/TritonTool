@@ -402,6 +402,10 @@ nav > * {
     overflow-x: scroll;
 }
 
+.courseBottom .selection {
+    background-color: var(--selected-color);
+}
+
 .courseBottom select {
     height: 1.9rem;
 }
