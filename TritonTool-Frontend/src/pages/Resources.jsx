@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 export default function Resources({authenticated, setAuthenticated, BACKEND_URL}) {
     const [resources, setResources] = useState([])
     const [labels, setLabels] = useState([])
-    const [currentLabel, setCurrentLabel] = useState('')
+    const [currentLabel, setCurrentLabel] = useState(sessionStorage.getItem("currentLabel") || "")
     const [addResource, setAddResource] = useState(false)
     const [editing, setEditing] = useState(false) //maybe elim 
     const [editingID, setEditingID] = useState('')
@@ -28,10 +28,6 @@ export default function Resources({authenticated, setAuthenticated, BACKEND_URL}
 
     const handleAuthError = useAuthErrorHandler(setAuthenticated);
 
-    useEffect(() => {
-        const storedLabel = sessionStorage.getItem("currentLabel") || "";
-        setCurrentLabel(storedLabel);
-    }, []);
     function handleLabelChange(label_name) {
         sessionStorage.setItem("currentLabel", label_name);
         setCurrentLabel(label_name);
