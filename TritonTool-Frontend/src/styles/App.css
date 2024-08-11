@@ -1,13 +1,14 @@
 /* Global */
 
 :root {
-    --text-color: #333;
+    --text-color: #2c3e50;
     --body-background: #f1f4f7;
     --nav-background: #fff;
     --card-background-color:#fcfcfc;
     --border: 1px solid #A9A9A9;
-    --large-shadow: 0 3px 6px rgba(0,0,0,.2);
-    --small-shadow: 0 2px 4px rgba(0,0,0,.2);
+    --large-shadow: 0 6px 9px rgba(0,0,0,.1);
+    --small-shadow: 0 2px 4px rgba(0,0,0,.1);
+    --strong-color: color: #2c3e50;
 
     --calendar-text-color: #fff;
     --calendar-head-background-color:#6b8292;
@@ -16,8 +17,9 @@
     --calendar-x-color: #333;
 
     --border-checkbox: 2px solid #555;
-    --checkbox-checked: #4CAF50;
-    --takeable-color: #A4DFAF;
+    --checkbox-checked: #34a838;
+    --checkbox-hover:#7575753f;
+    --takeable-color: #71d483;
     --not-takeable-color: #FFBABA;
 
     --pagination-button-disabled: #f5f5f5;
@@ -31,15 +33,16 @@
 }
 
 .darkMode {
-    --text-color: #e0e0e0;
+    --text-color: #ecf0f1;
     --body-background: #1a1a1a;
     --nav-background: #2c2c2c;
     --card-background-color: #2c2c2c;
     --border: 1px solid #444;
-    --large-shadow: 0 3px 6px rgba(0, 0, 0, .2);
-    --small-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+    --large-shadow: 0 6px 9px rgba(0, 0, 0, .1);
+    --small-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+    --strong-color:#ecf0f1;
 
-    --calendar-text-color: #e0e0e0;
+    --calendar-text-color: #ecf0f1;
     --calendar-head-background-color: #4a5a66;
     --border-calendar: 1px solid #444;
     --selected-color: #3a6d8c;
@@ -47,6 +50,7 @@
 
     --border-checkbox: 2px solid #888;
     --checkbox-checked: #A4DFAF;
+    --checkbox-hover:#6060608e;
     --takeable-color: #2e7d32;
     --not-takeable-color: #bf4040;
 
@@ -60,7 +64,7 @@
     --delete-and-error-color: #ff6b6b;
 }
 
-input, a, body .card, tr, #pagination, #selectedArea, nav, .tableCell, nav *, button {
+input, a, body .card, tr, #pagination, #selectedArea, nav, .tableCell, nav *, button{
     transition: all .15s ease;
 
 }
@@ -77,7 +81,7 @@ a {
     text-decoration: none;
 }
 
-button:hover, input[type="submit"]:hover, a:hover, .resource>i:hover, #creditCheck:hover, nav i:hover{
+button:hover, input[type="submit"]:hover, a:hover, .resource>i:hover, #creditCheck:hover, nav i:hover, .modeToggle:hover{
     cursor: pointer;
     opacity: 70%;
 }
@@ -121,19 +125,33 @@ nav > * {
     border-radius: 8px;
     padding: 1rem;
     box-shadow: var(--large-shadow);
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
 }
 
 .borderedCard {
     border: var(--border)
 }
 
+.card p {
+    margin-bottom: .7rem;
+    line-height: 1.6;
+}
 
+.card strong {
+    margin-right: 6px;
+    font-weight: 600;
+    color: var(--strong-color)
+}
 
-#modeToggle input {
+.modeToggle input {
     display: none;
 }
 
-
+.modeToggle{
+    position: absolute;
+    right: 1.2rem;
+    top: .7rem;
+}
 
 /* Calendar */
 
@@ -277,9 +295,10 @@ nav > * {
 /* Creditcheck */
 
 #creditCheck {
+    font-size: 1em;
     border: var(--border);
     margin-top: 1rem;
-    width:15rem;
+    width:20rem;
 }
 
 /* Prerequisites */
@@ -297,7 +316,7 @@ nav > * {
 .coursePrereq {
     margin-right: 1rem;
     width: 16rem;
-    max-height: 13.1rem;
+    max-height: 13.2rem;
     flex-shrink: 0;
     overflow-y: auto;
 }
@@ -316,10 +335,16 @@ nav > * {
 }
 
 .checkboxLabel {
+    border-radius: 4px;
     display: flex;
-    margin: 1rem 0;
+    margin: .2rem 0;
+    padding: .4rem;
     font-size: 0.9em;
     cursor: pointer;
+    transition: all .3s ease;
+}
+.checkboxLabel:hover {
+    background-color: var(--checkbox-hover)
 }
 
 .checkboxLabel input {
@@ -338,7 +363,7 @@ nav > * {
 /* Course search */
 
 #courseSearch {
-    margin: 1rem .5rem 0 3rem;
+    margin: 1.5rem .5rem 1rem 0rem;
     width: 40vw;
 }
 
@@ -354,9 +379,21 @@ nav > * {
     align-items: center;
 }
 
+@keyframes fadeInSlideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .courseItem {
     width: 90vw;
     margin-top: 1rem;
+    animation: fadeInSlideUp 0.3s ease-out;
 }
 
 .courseBottom {
@@ -373,14 +410,6 @@ nav > * {
     margin-right: .4rem;
 }
 
-.card p {
-    margin-bottom: .8rem;
-}
-
-.card strong {
-    margin-right: .4rem;
-}
-
 #pagination {
     margin-top: 1rem;
     display: flex;
@@ -388,9 +417,13 @@ nav > * {
     bottom: 1rem;
     padding: .5rem;
     margin-bottom: -1rem;
+    background-color: rgba(var(--card-background-color) 0.5);  /* Semi-transparent white background */
+    backdrop-filter: blur(5px);  /* This creates the blur effect */
+
 }
 
 #pagination button {
+    font-weight: 500;
     border: none;
     border-radius: 100%;
     background-color: var(--pagination-button-enabled);
@@ -409,6 +442,7 @@ nav > * {
 }
 
 #pagination .current {
+    opacity: 100%;
     background-color: var(--selected-color)
 }
 

@@ -59,11 +59,9 @@ function AppContent() {
 
     return (
         <>
-            {shouldShowNavbar && (
-                <nav>
-                    <Navbar authenticated={authenticated} setAuthenticated={setAuthenticated} BACKEND_URL={BACKEND_URL} toggleDarkMode={toggleDarkMode} darkMode={darkMode}/>
-                </nav>  
-            )}
+
+            <Navbar authenticated={authenticated} setAuthenticated={setAuthenticated} BACKEND_URL={BACKEND_URL} toggleDarkMode={toggleDarkMode} darkMode={darkMode} shouldShowNavbar={shouldShowNavbar}/>
+
             <Routes>
                 <Route path="/login" element={
                     authenticated ? <Navigate to="/" /> : <Login authenticated={authenticated} setAuthenticated={setAuthenticated} BACKEND_URL={BACKEND_URL}/>
