@@ -9,7 +9,6 @@ const axios = require('axios')
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const faculty = require('./data/faculty');
 const cookieParser = require('cookie-parser');
 const { Client } = require('pg');
 const { handleGenericServerError } = require('./utils/handleGenericServerError');
