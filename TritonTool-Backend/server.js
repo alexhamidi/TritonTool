@@ -165,12 +165,13 @@ app.post('/api/register', async (req, res) => {
 //Search for a course or set of courses
 app.post('/api/searchcourse', async (req, res) => {
     try {
-        const courseCode = req.body.course_code.trim().toUpperCase();
-        if (!courseCode) return res.status(400).json({ error: 'Course code is required' });
-        const parts = courseCode.trim().split(' ');
+        const {course_code} = req.body;
+        const processedCourseCode = course_code.trim().toUpperCase();
+
+        const parts = processedCourseCode.split(' ');
         const course_info = (parts.length === 1 ? 
-            await getAllCourses(courseCode, client) : 
-            await getOneCourse(courseCode, client));
+            await getAllCourses(processedCourseCode, client) : 
+            await getOneCourse(processedCourseCode, client));
         res.status(200).json({ course_info });
     } catch (error) {
         console.error(error);
