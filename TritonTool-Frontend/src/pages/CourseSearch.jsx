@@ -68,7 +68,6 @@ export default function CourseSearch({authenticated, setAuthenticated, BACKEND_U
     //===================================[Add a course to a user's account]===================================
 
     async function handleAddCourse(index, item) {
-        console.log(item)
         const currentInfo = courseInfo[index];
         if (currentInfo && currentInfo.quarter && (currentInfo.calendar || currentInfo.quarter === 'fulfilled')) {
             const updatedItem = {

@@ -2,7 +2,6 @@ import React from 'react';
 
 export default function PrerequisiteQuarterRow({getCoursesByQuarterAndCalendar, season, handlePrerequisiteChange, currentCalendar}) {
     const quarterCourses = getCoursesByQuarterAndCalendar(season, currentCalendar);
-    console.log(quarterCourses)
     return (
         <div className='seasonDiv' key={season}>
             <h2>Required for {season} courses:</h2>

@@ -42,7 +42,6 @@ export default function Resources({authenticated, setAuthenticated, BACKEND_URL}
         try {
             const response = await axios.get(`${BACKEND_URL}/api/${authenticated ? '' : 'default'}labels`, { withCredentials: true });
             setLabels(response.data);  
-            console.log(response.data)
         } catch (error) {
             console.error('Error fetching labels:', error);
         }
