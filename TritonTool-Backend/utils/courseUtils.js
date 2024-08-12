@@ -77,7 +77,16 @@ async function getCourseInfo($, modCourseCode) {
         if (!anchorParent.length) throw new Error(`Course ${modCourseCode} not found`);
 
         const fullCourseName = anchorParent.next('.course-name').text().trim();
-        const [, credits = 'N/A', textAfterCredits = ''] = fullCourseName.match(/\((.*?)\)(.*?)$/) || [];
+        const matchResult = fullCourseName.match(/\((.*?)\)(.*?)$/);
+
+        let credits = 'N/A';
+        let textAfterCredits = '';
+        
+        if (matchResult) {
+            credits = matchResult[1] || 'N/A';
+            textAfterCredits = matchResult[2] || '';
+        }        
+        
         course_info.credits = credits.trim();
         course_info.course_name = fullCourseName.replace(/\(.*?\).*$/, '').trim();
 
