@@ -188,12 +188,13 @@ nav > * {
 .top {
     display: flex;
     flex-direction: row;
-    align-items: center;
 }
 
 @media (max-width: 1000px) {
     .top {
         flex-direction: column;
+        align-items: center;
+
     }
     #selectedArea {
         width: 80vw;
