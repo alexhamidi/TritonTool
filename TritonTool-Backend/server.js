@@ -18,7 +18,7 @@ require('dotenv').config();
 app.use(cookieParser());
 app.use(express.json()); 
 app.use(cors({
-    origin: [process.env.FRONTEND_URL, process.env.FRONTEND_URL_ANGULAR], 
+    origin: [process.env.FRONTEND_URL], 
     methods: ['POST', 'GET', 'DELETE'], 
     credentials: true 
 }));
