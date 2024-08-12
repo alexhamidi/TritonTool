@@ -38,7 +38,7 @@ export default function CourseSearch({authenticated, setAuthenticated, BACKEND_U
 
     //===================================[Logic For Submitting a Search]===================================
 
-    async function onSubmit(e) {
+    async function courseSearch(e) {
         e.preventDefault();
         setDataReturned(false);
         try {
@@ -113,7 +113,7 @@ export default function CourseSearch({authenticated, setAuthenticated, BACKEND_U
         <div className='page' id = 'searchPage'>
             <header id='searchHeader'>
                 <h2>Enter department (EX: MATH), Course Name (EX: CSE 20), or department and search term (EX: CSE discrete; LIT LTFR)</h2>
-                <form onSubmit={onSubmit}>
+                <form onSubmit={courseSearch}>
                     <input className = 'input' id = 'courseSearch' type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)}/>
                     <input className = 'input' type="submit" value="Submit"/>
                 </form>
