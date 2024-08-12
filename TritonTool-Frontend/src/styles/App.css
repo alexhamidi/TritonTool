@@ -172,12 +172,40 @@ nav > * {
 #calendar {
     user-select: none;
     border-spacing: 0;
-    width: 69vw;
+    width: 69%;
     margin-right: 1vw;
     border-radius: 8px;
     box-shadow: var(--large-shadow);
     overflow: hidden;
 }
+
+#selectedArea {
+    width: 30%;
+    overflow-y: auto;
+}
+
+
+.top {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+@media (max-width: 1000px) {
+    .top {
+        flex-direction: column;
+    }
+    #selectedArea {
+        width: 80vw;
+        margin-top: 1rem;
+        height: auto;
+    }
+    #calendar {
+        height: 30rem;
+    }
+}
+
+
 
 #calendar th, #calendar td {
     padding: .8rem;
@@ -268,14 +296,8 @@ nav > * {
     cursor: pointer;
 }
 
-.top {
-    display: flex;
-}
 
-#selectedArea {
-    width: 30vw;
-    overflow-y: auto;
-}
+
 
 .tableCell {
     border-radius: 5px;
