@@ -2,7 +2,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-async function getOneCourse(courseCode, client) {
+async function getSelectCourses(courseCode, client) {
     const parts = courseCode.split(' ');
     const subject_code = parts[0];
     const secondPart = parts.slice(1).join(' ');
@@ -147,7 +147,7 @@ function parsePrerequisites(prerequisites) {
 
 module.exports = {
     getAllCourses,
-    getOneCourse,
+    getSelectCourses,
     getCourseInfo,
     parsePrerequisites
 };

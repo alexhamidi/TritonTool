@@ -18,7 +18,7 @@ require('dotenv').config();
 app.use(cookieParser());
 app.use(express.json()); 
 app.use(cors({
-    origin: [process.env.FRONTEND_URL], 
+    origin: [process.env.FRONTEND_URL, process.env.FRONTEND_URL_UCSD], 
     methods: ['POST', 'GET', 'DELETE'], 
     credentials: true 
 }));
@@ -171,7 +171,7 @@ app.post('/api/searchcourse', async (req, res) => {
         const parts = processedCourseCode.split(' ');
         const course_info = (parts.length === 1 ? 
             await getAllCourses(processedCourseCode, client) : 
-            await getOneCourse(processedCourseCode, client));
+            await getSelectCourses(processedCourseCode, client));
         res.status(200).json({ course_info });
     } catch (error) {
         console.error(error);
