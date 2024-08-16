@@ -6,6 +6,8 @@ export function useAuthRedirect(authenticated) {
 
     useEffect(() => {
         if (!authenticated) {
+            localStorage.clear()
+            sessionStorage.clear()
             navigate('/login');
         }
     }, [authenticated, navigate]);

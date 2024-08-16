@@ -16,11 +16,11 @@ const app = express();
 require('dotenv').config();
 
 app.use(cookieParser());
-app.use(express.json()); 
+app.use(express.json());
 app.use(cors({
-    origin: [process.env.FRONTEND_URL, process.env.FRONTEND_URL_UCSD], 
-    methods: ['POST', 'GET', 'DELETE'], 
-    credentials: true 
+    origin: [process.env.FRONTEND_URL, process.env.FRONTEND_URL_UCSD],
+    methods: ['POST', 'GET', 'DELETE'],
+    credentials: true
 }));
 
 const PORT = process.env.PORT;
@@ -59,15 +59,15 @@ const authenticateToken = (req, res, next) => {
     jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
         if (err) {
             res.clearCookie('token'); // Clear the invalid token
-            return res.status(401).json({error: err.name === 'TokenExpiredError' ? 'Unauthorized: Token expired' : 'Unauthorized: Invalid token' });
+            return res.status(401).json({ error: err.name === 'TokenExpiredError' ? 'Unauthorized: Token expired' : 'Unauthorized: Invalid token' });
         }
         req.userID = decoded.userID;
         next();
     });
 };
-    
+
 //API endpoint to test middleware functionality
-app.get('/api/verifytoken', authenticateToken, (req, res) => { 
+app.get('/api/verifytoken', authenticateToken, (req, res) => {
     res.status(200).json({ message: 'Token is valid', userID: req.userID });
 });
 
@@ -86,7 +86,7 @@ app.post('/api/logout', (req, res) => {
 
 
 //logging in  API endpoint
-app.post('/api/login', async(req, res) => {
+app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await client.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -103,9 +103,9 @@ app.post('/api/login', async(req, res) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', 
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 3600000 
+            maxAge: 3600000
         });
 
         res.status(200).json({ message: 'Login successful' });
@@ -115,10 +115,10 @@ app.post('/api/login', async(req, res) => {
 })
 
 //registering API endpoint
-app.post('/api/register', async (req, res) => { 
+app.post('/api/register', async (req, res) => {
     const { email, password } = req.body;
     try {
-        const existingUser = await client.query('SELECT * FROM users WHERE email = $1', [email]); 
+        const existingUser = await client.query('SELECT * FROM users WHERE email = $1', [email]);
         if (existingUser.rows.length > 0) return res.status(400).json({ error: 'User already exists with that email' });
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -126,8 +126,8 @@ app.post('/api/register', async (req, res) => {
             'INSERT INTO users (email, hashed_password) VALUES ($1, $2) RETURNING *',
             [email, hashedPassword]
         );
-    
-        const userID = newUser.rows[0].user_id;       
+
+        const userID = newUser.rows[0].user_id;
 
         const defaultCalendar = getDefaultCalendar(client);
         await addDefaultCalendar(defaultCalendar, userID, client);
@@ -148,7 +148,7 @@ app.post('/api/register', async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: process.env.NODE_ENV === 'production',
-            maxAge: 3600000 
+            maxAge: 3600000
         });
         res.status(201).json({ message: 'Registration successful' });
     } catch (error) {
@@ -165,12 +165,12 @@ app.post('/api/register', async (req, res) => {
 //Search for a course or set of courses
 app.post('/api/searchcourse', async (req, res) => {
     try {
-        const {course_code} = req.body;
+        const { course_code } = req.body;
         const processedCourseCode = course_code.trim().toUpperCase();
 
         const parts = processedCourseCode.split(' ');
-        const course_info = (parts.length === 1 ? 
-            await getAllCourses(processedCourseCode, client) : 
+        const course_info = (parts.length === 1 ?
+            await getAllCourses(processedCourseCode, client) :
             await getSelectCourses(processedCourseCode, client));
         res.status(200).json({ course_info });
     } catch (error) {
@@ -191,24 +191,24 @@ app.post('/api/searchcourse', async (req, res) => {
 //=========================================================================================================
 
 //retreive all calendars in the calendars database
-app.get('/api/calendars', authenticateToken, async(req, res) => {
+app.get('/api/calendars', authenticateToken, async (req, res) => {
     try {
         const userID = req.userID;
         const calendars = await client.query(
-            'SELECT * FROM calendars WHERE user_id = $1', 
+            'SELECT * FROM calendars WHERE user_id = $1',
             [userID]
-        )   
+        )
         res.json(calendars.rows)
     } catch (error) {
         handleGenericServerError(error, res)
-    } 
+    }
 })
 
 
-//add a new calendar 
-app.post('/api/addcalendar', authenticateToken, async(req,res) => {
+//add a new calendar
+app.post('/api/addcalendar', authenticateToken, async (req, res) => {
     try {
-        const {calendar_name} = req.body;
+        const { calendar_name } = req.body;
         const userID = req.userID;
 
         const existingCalendar = await client.query(
@@ -217,21 +217,21 @@ app.post('/api/addcalendar', authenticateToken, async(req,res) => {
         );
 
         if (existingCalendar.rows.length > 0) {
-            return res.status(409).json({error: "Calendar Already Exists"});
+            return res.status(409).json({ error: "Calendar Already Exists" });
         }
 
         const updatedCalendars = await client.query(
-            'INSERT INTO calendars (user_id, calendar_name) VALUES ($1, $2) RETURNING *', 
+            'INSERT INTO calendars (user_id, calendar_name) VALUES ($1, $2) RETURNING *',
             [userID, calendar_name]
-        )   
+        )
         res.json(updatedCalendars.rows)
     } catch (error) {
         handleGenericServerError(error, res)
-    } 
+    }
 })
 
 //delete a calendar. Deletes the calendar in the calendars table as well as all associated courses.
-app.delete('/api/deletecalendar/:calendar_name', authenticateToken, async(req, res) => {
+app.delete('/api/deletecalendar/:calendar_name', authenticateToken, async (req, res) => {
     try {
         const { calendar_name } = req.params;
         const userID = req.userID;
@@ -239,14 +239,14 @@ app.delete('/api/deletecalendar/:calendar_name', authenticateToken, async(req, r
         const updatedCourses = await client.query(
             'DELETE FROM courses_user WHERE user_id = $1 AND calendar_name = $2 RETURNING *',
             [userID, calendar_name]
-        );     
-        
+        );
+
         const updatedCalendars = await client.query(
             'DELETE FROM calendars WHERE user_id = $1 AND calendar_name = $2 RETURNING *',
             [userID, calendar_name]
-        );     
+        );
 
-        res.json({courses: updatedCourses.rows, calendars: updatedCalendars.rows});
+        res.json({ courses: updatedCourses.rows, calendars: updatedCalendars.rows });
     } catch (error) {
         handleGenericServerError(error, res)
     }
@@ -260,7 +260,7 @@ app.delete('/api/deletecalendar/:calendar_name', authenticateToken, async(req, r
 
 
 //retrieves all courses that a user has added to their schedule
-app.get('/api/courses', authenticateToken, async(req, res) => {
+app.get('/api/courses', authenticateToken, async (req, res) => {
     try {
         const userID = req.userID;
         const courses = await client.query(
@@ -274,9 +274,9 @@ app.get('/api/courses', authenticateToken, async(req, res) => {
 });
 
 //Adds a course to the database
-app.post('/api/addcourse', authenticateToken, async(req, res) => {
+app.post('/api/addcourse', authenticateToken, async (req, res) => {
     try {
-        const {course_name, quarter, subject_code, calendar_name, credits, prerequisites, notes, description, course_code} = req.body;
+        const { course_name, quarter, subject_code, calendar_name, credits, prerequisites, notes, description, course_code } = req.body;
         const userID = req.userID;
 
         const existingCourse = await client.query(
@@ -285,15 +285,15 @@ app.post('/api/addcourse', authenticateToken, async(req, res) => {
         );
 
         if (existingCourse.rows.length > 0) {
-            return res.status(409).json({error: "Course already exists in this quarter and calendar"});
+            return res.status(409).json({ error: "Course already exists in this quarter and calendar" });
         }
-         
+
         const insertedCourse = await client.query(
             'INSERT INTO courses_user (user_id, course_name, subject_code, quarter, calendar_name, credits, prerequisites, notes, description, course_code, takeable) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
             [userID, course_name, subject_code, quarter, calendar_name, credits, prerequisites, notes, description, course_code, false]
         );
 
-        const catalogCourse = await client.query('SELECT course_id FROM courses_catalog WHERE course_code = $1',[course_code]);
+        const catalogCourse = await client.query('SELECT course_id FROM courses_catalog WHERE course_code = $1', [course_code]);
         const catalogCourseId = catalogCourse.rows[0].course_id;
         const segmentResults = await client.query(
             'SELECT segment_name FROM prerequisite_segments_catalog WHERE course_id = $1',
@@ -312,7 +312,7 @@ app.post('/api/addcourse', authenticateToken, async(req, res) => {
     }
 });
 
-app.delete('/api/deletecourse/:course_id', authenticateToken, async(req, res) => {
+app.delete('/api/deletecourse/:course_id', authenticateToken, async (req, res) => {
     try {
         const { course_id } = req.params;
         const userID = req.userID;
@@ -339,7 +339,7 @@ app.get('/api/segments/:course_id', authenticateToken, async (req, res) => {
     try {
         const { course_id } = req.params;
         const userID = req.userID;
-        
+
         const results = await client.query(
             `SELECT * FROM prerequisite_segments_user
              WHERE user_id = $1 AND course_id = $2`,
@@ -351,13 +351,13 @@ app.get('/api/segments/:course_id', authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/api/updatesegment', authenticateToken, async (req, res) => { 
+app.post('/api/updatesegment', authenticateToken, async (req, res) => {
     try {
-        const {course_id, segment_id} = req.body;
+        const { course_id, segment_id } = req.body;
         const userID = req.userID;
-        
+
         const result = await client.query(
-            `UPDATE prerequisite_segments_user 
+            `UPDATE prerequisite_segments_user
              SET checked = NOT checked
              WHERE user_id = $1 AND course_id = $2 AND segment_id = $3
              RETURNING *`,
@@ -368,7 +368,7 @@ app.post('/api/updatesegment', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: "Prerequisite segment not found" });
         }
 
-        res.json({ message: "Prerequisite segment updated successfully", segment_name: result.rows[0]});
+        res.json({ message: "Prerequisite segment updated successfully", segment_name: result.rows[0] });
     } catch (error) {
         handleGenericServerError(error, res)
     }
@@ -402,7 +402,7 @@ app.post('/api/updatetakeable', authenticateToken, async (req, res) => {
 //================================================================================
 
 //get all existing resources for a user
-app.get('/api/resources', authenticateToken, async(req, res) => {
+app.get('/api/resources', authenticateToken, async (req, res) => {
     try {
         const userID = req.userID;
         const resources = await client.query(
@@ -416,7 +416,7 @@ app.get('/api/resources', authenticateToken, async(req, res) => {
 });
 
 //load default resources (if the user is logged in as a guest)
-app.get('/api/defaultresources', async(req, res) => {
+app.get('/api/defaultresources', async (req, res) => {
     try {
         const defaultResources = await getDefaultResources(client)
         res.json(defaultResources);
@@ -425,7 +425,7 @@ app.get('/api/defaultresources', async(req, res) => {
     }
 });
 
-app.get('/api/labels', authenticateToken, async(req, res) => {
+app.get('/api/labels', authenticateToken, async (req, res) => {
     try {
         const userID = req.userID;
         const labels = await client.query(
@@ -438,7 +438,7 @@ app.get('/api/labels', authenticateToken, async(req, res) => {
     }
 });
 
-app.get('/api/defaultlabels', async(req, res) => {
+app.get('/api/defaultlabels', async (req, res) => {
     try {
         const defaultLabels = await getDefaultLabels(client);
         res.json(defaultLabels);
@@ -448,9 +448,9 @@ app.get('/api/defaultlabels', async(req, res) => {
 });
 
 //add a new resource to ther users database
-app.post('/api/addresource', authenticateToken, async(req, res) => {
+app.post('/api/addresource', authenticateToken, async (req, res) => {
     try {
-        const {resource_name, description, label_name, link} = req.body;
+        const { resource_name, description, label_name, link } = req.body;
         const userID = req.userID;
         const updatedResources = await client.query(
             'INSERT INTO resources (user_id, resource_name, description, label_name, link) VALUES ($1, $2, $3, $4, $5) RETURNING *',
@@ -462,16 +462,16 @@ app.post('/api/addresource', authenticateToken, async(req, res) => {
     }
 });
 
-app.post('/api/addlabel', authenticateToken, async(req, res) => {
+app.post('/api/addlabel', authenticateToken, async (req, res) => {
     try {
-        const {label_name} = req.body;
+        const { label_name } = req.body;
         const userID = req.userID;
         const existingLabel = await client.query(
             'SELECT * FROM labels WHERE user_id = $1 AND label_name = $2',
             [userID, label_name]
         );
         if (existingLabel.rows.length > 0) {
-            return res.status(409).json({error: "Course already exists in this quarter and calendar"});
+            return res.status(409).json({ error: "Course already exists in this quarter and calendar" });
         }
         const updatedResources = await client.query(
             'INSERT INTO labels (user_id, label_name) VALUES ($1, $2) RETURNING *',
@@ -484,33 +484,33 @@ app.post('/api/addlabel', authenticateToken, async(req, res) => {
 });
 
 //delete a resource from the user's database
-app.delete('/api/deleteresource/:resource_id', authenticateToken, async(req, res) => {
+app.delete('/api/deleteresource/:resource_id', authenticateToken, async (req, res) => {
     try {
         const { resource_id } = req.params;
         const userID = req.userID;
         const updatedResources = await client.query(
             'DELETE FROM resources WHERE user_id = $1 AND resource_id = $2 RETURNING *',
             [userID, resource_id]
-        );        
+        );
         res.json(updatedResources.rows);
     } catch (error) {
         handleGenericServerError(error, res)
     }
 });
 
-//delete all resources with the given label. 
-app.delete('/api/deletelabel/:label_name', authenticateToken, async(req, res) => {
+//delete all resources with the given label.
+app.delete('/api/deletelabel/:label_name', authenticateToken, async (req, res) => {
     try {
         const { label_name } = req.params;
         const userID = req.userID;
         const updatedResources = await client.query(
             'DELETE FROM resources WHERE user_id = $1 AND label_name = $2 RETURNING *',
             [userID, label_name]
-        );     
+        );
         const updatedLabels = await client.query(
             'DELETE FROM labels WHERE user_id = $1 AND label_name = $2 RETURNING *',
             [userID, label_name]
-        );    
+        );
         res.json(updatedLabels.rows);
     } catch (error) {
         handleGenericServerError(error, res)
